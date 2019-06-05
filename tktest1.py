@@ -4,6 +4,9 @@ import http.client
 import urllib.request
 from io import BytesIO
 import urllib
+import telepot
+
+from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
 import tkinter.messagebox
@@ -76,7 +79,7 @@ def onselect(evt):
     value = w.get(index)
     print('You selected item %d: "%s"' % (index, value))
     print(DataList)
-    url = DataList.index(value) - 2
+    url = DataList.index(value) -4
     url = DataList[url]
     print(url)
 
@@ -102,10 +105,10 @@ def onselect(evt):
     selectText.insert(INSERT, value)
     selectText.insert(INSERT, "\n")
     selectText.insert(INSERT, '전화 : ')
-    selectText.insert(INSERT, DataList[DataList.index(value) - 1])
+    selectText.insert(INSERT, DataList[DataList.index(value)-1 ])
     selectText.insert(INSERT, "\n")
     selectText.insert(INSERT, '주소 : ')
-    selectText.insert(INSERT, DataList[DataList.index(value) - 3])
+    selectText.insert(INSERT, DataList[DataList.index(value) - 5])
     selectText.insert(INSERT, "\n")
 
 
@@ -127,7 +130,7 @@ def SearchWhere():
     servicekey = "vI6iJQ67m77QdQNRKPolJItYH7UHkXtO5gb7xohugYFEwoSQueRopRItR%2BxijJqtggX3PvDvMYm2vPRotrTN4g%3D%3D"
     conn = http.client.HTTPConnection(server)
     conn.request("GET", "/openapi/service/rest/KorService/searchKeyword?serviceKey=" + servicekey +
-                 "&MobileApp=AppTest&MobileOS=ETC&pageNo=1&startPage=1&numOfRows=10&pageSize=10&listYN=Y&arrange=A&contentTypeId=12&keyword=" + encText)
+                 "&MobileApp=AppTest&MobileOS=ETC&pageNo=1&startPage=1&numOfRows=999&pageSize=10&listYN=Y&arrange=A&contentTypeId=12&keyword=" + encText)
     req = conn.getresponse()
 
     if int(req.status) == 200:
@@ -148,11 +151,11 @@ def SearchWhere():
                     #print('주소: ',lis.firstChild.nodeValue)
                     DataList.append(lis.firstChild.nodeValue)
                     #RenderText.insert(END, '주소: ')
-                    #RenderText.insert(END, lis.firstChild.nodeValue)
+                   # RenderText.insert(END, lis.firstChild.nodeValue)
                     #RenderText.insert(list_count, '\n')
-                if lis.nodeName == 'addr2':
+              #  if lis.nodeName == 'addr2':
                     #print('주소: ',lis.firstChild.nodeValue)
-                    pass
+                #    pass
                 if lis.nodeName == 'firstimage':
                     #print('사진1: ',lis.firstChild.nodeValue)
                     DataList.append(lis.firstChild.nodeValue)
@@ -172,20 +175,82 @@ def SearchWhere():
                     #RenderText.insert(list_count, '시설명: ')
                     #RenderText.insert(list_count, lis.firstChild.nodeValue)
                     #RenderText.insert(list_count, '\n\n')
+                if lis.nodeName == 'mapx':
+                        DataList.append(lis.firstChild.nodeValue)
+                if lis.nodeName == 'mapy':
+                        DataList.append(lis.firstChild.nodeValue)
     else:
         print("Error!")
 
 
-def SearchWhere2():
+
+
+def InitTeleButton():
+    TempFont = font.Font(g_Tk, size=12, weight='bold', family='Consolas')
+    SearchButton = Button(g_Tk, font=TempFont, text="텔레그램", command=TeleAction)
+    SearchButton.pack()
+    SearchButton.place(x=880, y=80)
+
+def TeleAction():
+    global bot
+    bot = telepot.Bot('817469690:AAHN_b-ew2MjuCIv30qnDikIXCVLNjpvMRc')
+    bot.getMe()
+
+    bot.message_loop(Handle)
+
+    print("Listening...")
+
+
+
+
+def Handle(msg):
+    global bot
     import http.client
     from xml.dom.minidom import parse, parseString
-    conn = http.client.HTTPConnection("api.visitkorea.or.kr")
-    encText = urllib.parse.quote("서울")
-    url = "/openapi/service/rest/KorService/searchKeyword?ServiceKey=vI6iJQ67m77QdQNRKPolJItYH7UHkXtO5gb7xohugYFEwoSQueRopRItR%2BxijJqtggX3PvDvMYm2vPRotrTN4g%3D%3D&numOfRows=10&pageNo=1&MobileOS=ETC&MobileApp=AppTest&MobileOS=ETC&pageNo=1&numOfRows=10&listYN=Y&arrange=A&contentTypeId=12&keyword="
-    conn.request("GET", url + encText, None)
+    content_type, chat_type, chat_id = telepot.glance(msg)
+    print(msg['text'])
+    if content_type != 'text':
+        bot.sendMessage("763140001", '난 텍스트 이외의 메시지는 처리하지 못해요.')
+        return
+
+
+
+    conn = None
+    path = msg['text']
+    encText = urllib.parse.quote(path)
+
+    server = "api.visitkorea.or.kr"
+    servicekey = "vI6iJQ67m77QdQNRKPolJItYH7UHkXtO5gb7xohugYFEwoSQueRopRItR%2BxijJqtggX3PvDvMYm2vPRotrTN4g%3D%3D"
+    conn = http.client.HTTPConnection(server)
+    conn.request("GET", "/openapi/service/rest/KorService/searchKeyword?serviceKey=" + servicekey +
+                 "&MobileApp=AppTest&MobileOS=ETC&pageNo=1&startPage=1&numOfRows=999&pageSize=10&listYN=Y&arrange=O&contentTypeId=12&keyword=" + encText)
     req = conn.getresponse()
-    global DataList
-    DataList.clear()
+    if int(req.status) == 200:
+        response_body = req.read().decode('utf-8')
+
+        parseData = parseString(response_body)
+
+        GeoInfoWhere = parseData.childNodes
+
+        row = GeoInfoWhere[0].childNodes[1].childNodes[0].childNodes
+
+        for item in row:
+            st = str()
+            list = item.childNodes
+            for lis in list:
+                if lis.nodeName == 'addr1':
+                    st += "주소 : " + lis.firstChild.nodeValue
+                if lis.nodeName == 'tel':
+                    st += "\n전화번호 : " + lis.firstChild.nodeValue
+                if lis.nodeName == 'title':
+
+                    st += "\n이름 : " + lis.firstChild.nodeValue
+                    bot.sendMessage("763140001", st)
+
+
+
+
+
 
 
 
@@ -193,15 +258,14 @@ def SearchWhere2():
 def InitRenderText():
     global RenderText
 
-   # RenderTextScrollbar =Scrollbar(g_Tk)
-    #RenderTextScrollbar.pack()
-    #RenderTextScrollbar.place(x=375, y=200)
+
+
 
     TempFont = font.Font(g_Tk, size=10, family='Consolas')
     RenderText = Listbox(g_Tk, width=40, height=30, borderwidth=12, relief='ridge')
     #RenderText = Text(g_Tk, width=30, height=27, borderwidth=12, relief='ridge')
                       #,yscrollcommand=RenderTextScrollbar.set)
-    RenderText.pack()
+    RenderText.pack(side = RIGHT,fill =Y)
     RenderText.place(x=800, y=215)
     #RenderTextScrollbar.config(command= RenderText.yview)
     #RenderTextScrollbar.pack(side = RIGHT, fill = BOTH)
@@ -217,4 +281,5 @@ InitSearchButton()
 InitRenderText()
 InitSelectLabel()
 
+InitTeleButton()
 g_Tk.mainloop()
