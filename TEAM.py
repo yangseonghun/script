@@ -12,8 +12,11 @@ import mimetypes
 #import mysmtplib
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
-
+import spam
 import tkinter.messagebox
+
+
+
 
 g_Tk = Tk()
 g_Tk.geometry("1200x700+100+100")
@@ -21,7 +24,7 @@ DataList = []
 SandDataList = []
 url = str("")
 
-
+print (spam.strlen("hello world")) # spam을 이용한 c++ 모듈 test
 def InitTopText():
     TempFont = font.Font(g_Tk, size=20, weight='bold', family = 'Consolas')
     MainText = Label(g_Tk, font = TempFont, text="[국내 관광지 정보]")
@@ -103,6 +106,7 @@ def onselect(evt):
     TempFont = font.Font(g_Tk, size=12, family='Consolas')
 
     selectText = Text(g_Tk,font=TempFont, width=81, height=4, borderwidth=12, relief='ridge')
+
 
 
     selectText.insert(INSERT, '관광지명 : ')
@@ -217,6 +221,7 @@ def TeleAction():
 
 
 
+
 def Handle(msg):
     global bot
     import http.client
@@ -268,7 +273,7 @@ def InitsandButton():
     TempFont = font.Font(g_Tk, size=12, weight='bold', family = 'Consolas')
     SearchButton = Button(g_Tk, font = TempFont, text="이메일전송", command=sandAction)
     SearchButton.pack()
-    SearchButton.place(x=990, y=80)
+    SearchButton.place(x=960, y=80)
 
 
 
