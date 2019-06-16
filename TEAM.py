@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 # -*- coding: utf-8 -*-
 import mimetypes
-#import mysmtplib
+import mysmtplib
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 import spam
@@ -25,6 +25,7 @@ SandDataList = []
 url = str("")
 
 print (spam.strlen("hello world")) # spam을 이용한 c++ 모듈 test
+
 def InitTopText():
     TempFont = font.Font(g_Tk, size=20, weight='bold', family = 'Consolas')
     MainText = Label(g_Tk, font = TempFont, text="[국내 관광지 정보]")
